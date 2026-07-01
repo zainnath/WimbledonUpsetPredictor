@@ -10,10 +10,8 @@ venv/
 *.ipynb_checkpoints
 
 # Data / cache
-data/raw/
+data/
 data/cache/
-*.csv
-*.json
 
 # VS Code
 .vscode/
