@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 import requests
 import json
-from models import Player
+from models import Player, Match
 
 load_dotenv()  # reads .env and loads its contents into the environment
 
@@ -50,14 +50,17 @@ def get_draws_cached(tour, slug, year):
 
     return data
 
+'''
 players_2026 = []
 seen_ids = set()
+matches = []
 
 data = get_player_stats()
 
 for match in data["singles"]:
     player1 = Player.from_api_dict(match["player1"])
     player2 = Player.from_api_dict(match["player2"])
+    
     
     if player1.id not in seen_ids:
         players_2026.append(player1)
@@ -67,6 +70,10 @@ for match in data["singles"]:
         players_2026.append(player2)
         seen_ids.add(player2.id)
 
+for match in data["singles"]:
+    matches.append(match)
+'''
+'''
 def fetch_player_history(player_id, include_all=True):
     url = f"https://tennis-api-atp-wta-itf.p.rapidapi.com/tennis/v2/atp/player/surface-summary/{player_id}"
 
@@ -111,3 +118,5 @@ for player in players_2026:
         player_histories[player.id] = history
     except requests.exceptions.HTTPError as e:
         print(f"Failed for {player.name} (ID {player.id}): {e}")
+'''
+

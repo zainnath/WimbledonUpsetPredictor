@@ -1,7 +1,7 @@
 class Player:
 
     def __init__(self, id, name, ranking, age=0, grass_wins_12mo=0, grass_loses_12mo=0, 
-                 sets_won=0, sets_lost=0, H2H_wins=0, H2H_loses=0, H2H_grass_wins=0, H2H_grass_loses=0):
+                 sets_won=0, sets_lost=0, H2H_wins=0, H2H_loses=0):
         self.id = id
         self.name = name
         self.ranking = ranking
@@ -21,19 +21,18 @@ class Player:
         return "{}+%".format(percent_wins)
     
     @classmethod
-    def from_api_dict(cls, data):
-        return cls(id = data["id"], name = data["name"], ranking = data["seed"])
+    def from_api_dict(cls, data1):
+        return cls(id = data1["id"], name = data1["name"], ranking = data1["seed"])
 
 
 
 class Match:
 
-    def __init__(self, player1, player2, round, winner, court, score):
+    def __init__(self, player1, player2, roundId, score, winner = None):
         self.player1 = player1
         self.player2 = player2
-        self.round = round
+        self.roundId = roundId
         self.winner = winner
-        self.court = court
         self.score = score
 
     def __repr__(self):
@@ -41,6 +40,11 @@ class Match:
     
     def upset_probability(self):
         pass
+
+    @classmethod
+    def from_api_dict(cls, data1):
+        return cls(player1 = data1["player1Id"], player2 = data1["player2Id"], 
+             score = data1["result"], roundId = data1["roundId"])
 
 class Bracket:
     
