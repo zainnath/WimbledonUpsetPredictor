@@ -43,6 +43,7 @@ def get_draws_cached(tour, slug, year):
 
     print("from API")
     data = fetch_tournament_draws(tour, slug, year)
+    print("Updated matches!")
 
     os.makedirs(CACHE_DIR, exist_ok=True)
     with open(cache_path, "w") as f:
