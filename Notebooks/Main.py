@@ -3,7 +3,10 @@ import numpy as np
 import json
 from models import Player, Match
 from upset_predictor import upset_predictor
-
+import os
+import seaborn as sns
+import matplotlib.pyplot as plt
+r'''
 matches = pd.read_csv(r'C:\Users\Zain\OneDrive\FirstProject26\data\atp_matches_till_2022.csv')
 
 def get_player_stats():
@@ -116,4 +119,69 @@ for year_entry in data3["data"]:
 
 result = upset_predictor(player1_ranking, player2_ranking, player1, player2, matches, grass_wins_fav, grass_losses_fav, grass_wins_underdog, grass_losses_underdog, player1.sets_won, player1.sets_lost, player2.sets_won, player2.sets_lost)
 
-print(str(result*100) + '%')
+# print(str(result*100) + '%')
+'''
+player_id = [47275, 40609, 34968, 73608, 79113]
+
+records = []
+for id in player_id:
+    cache_path = f"data/cache/surface_history_{id}.json"
+    if os.path.exists(cache_path):
+        with open(cache_path, "r") as f:
+            data_sns =  json.load(f)
+
+    cache_path = f"data/cache/atp_wimbledon_2026_draws.json"
+    if os.path.exists(cache_path):
+        with open(cache_path, "r") as f:
+            data_names =  json.load(f)
+    
+
+    for match in data_names["singles"]:
+        if match["player1"]["id"] == id:
+            name = match["player1"]["name"]
+            break
+        elif match["player2"]["id"] == id:
+            name = match["player2"]["name"]
+            break
+            
+
+    grass_wins_count = 0
+    grass_losses_count = 0
+    for year_entry in data_sns["data"]:
+        for surface in year_entry["surfaces"]:
+            if surface["court"] == "Grass":
+                grass_wins_count += surface["courtWins"]
+                grass_losses_count += surface["courtLosses"]
+
+    records.append({
+        'player_id': id,
+        'name': name,
+        'wins': grass_wins_count,
+        'losses': grass_losses_count
+    })
+
+grass_df = pd.DataFrame(records)
+
+sns.set_style("whitegrid")
+
+melted = grass_df.melt(
+    id_vars='name',
+    value_vars=['wins', 'losses'],
+    var_name='outcome',
+    value_name='count'
+)
+
+plt.figure(figsize=(9, 5))
+sns.barplot(data=melted, x='name', y='count', hue='outcome',
+            palette=['#4a7c59', '#c44536'])   # green wins, red losses
+
+plt.title('Grass-Court Record')
+plt.xlabel('Player')
+plt.ylabel('Matches')
+plt.xticks(rotation=45, ha='right')
+plt.legend(title='Outcome')
+plt.tight_layout()
+plt.show()
+
+
+    

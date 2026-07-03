@@ -50,7 +50,7 @@ def get_draws_cached(tour, slug, year):
 
     return data
 
-'''
+
 players_2026 = []
 seen_ids = set()
 matches = []
@@ -72,8 +72,8 @@ for match in data["singles"]:
 
 for match in data["singles"]:
     matches.append(match)
-'''
-'''
+
+
 def fetch_player_history(player_id, include_all=True):
     url = f"https://tennis-api-atp-wta-itf.p.rapidapi.com/tennis/v2/atp/player/surface-summary/{player_id}"
 
@@ -118,5 +118,5 @@ for player in players_2026:
         player_histories[player.id] = history
     except requests.exceptions.HTTPError as e:
         print(f"Failed for {player.name} (ID {player.id}): {e}")
-'''
+
 
