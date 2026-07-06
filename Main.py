@@ -73,8 +73,8 @@ for m in matches_played:
             p2.sets_won += 1
             p1.sets_lost += 1
 
-fav = 'Jannik Sinner'
-underdog = 'Ignacio Buse'
+fav = 'Felix Auger Aliassime'
+underdog = 'Novak Djokovic'
 
 player1 = next((p for p in players_2026 if p.name == fav), None)
 player2 = next((p for p in players_2026 if p.name == underdog), None)
@@ -120,7 +120,7 @@ for year_entry in data3["data"]:
 result = upset_predictor(player1_ranking, player2_ranking, player1, player2, matches, grass_wins_fav, grass_losses_fav, grass_wins_underdog, grass_losses_underdog, player1.sets_won, player1.sets_lost, player2.sets_won, player2.sets_lost)
 
 # print(str(result*100) + '%')
-
+'''
 player_id = [47275, 40609, 34968, 73608, 79113]
 
 records = []
@@ -182,6 +182,6 @@ plt.xticks(rotation=45, ha='right')
 plt.legend(title='Outcome')
 plt.tight_layout()
 plt.show()
-
+'''
 
     

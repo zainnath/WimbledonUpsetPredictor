@@ -24,11 +24,16 @@ class Player:
     def from_api_dict(cls, data1):
         return cls(id = data1["id"], name = data1["name"], ranking = data1["seed"])
 
-
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "ranking": self.ranking,   
+            "sets_won": self.sets_won,
+            "sets_lost": self.sets_lost,
+        }
 
 class Match:
-
-    def __init__(self, player1, player2, roundId, score, winner = None):
+    def __init__(self, player1, player2, roundId, score, winner=None):
         self.player1 = player1
         self.player2 = player2
         self.roundId = roundId
@@ -37,14 +42,28 @@ class Match:
 
     def __repr__(self):
         return "{} vs {}".format(self.player1, self.player2)
-    
-    def upset_probability(self):
-        pass
+
+    @property
+    def id(self):
+        return f"{self.roundId}_{self.player1}_{self.player2}"
 
     @classmethod
     def from_api_dict(cls, data1):
-        return cls(player1 = data1["player1Id"], player2 = data1["player2Id"], 
-             score = data1["result"], roundId = data1["roundId"])
+        return cls(
+            player1=data1["player1Id"],
+            player2=data1["player2Id"],
+            score=data1["result"],
+            roundId=data1["roundId"],
+        )
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "player1_id": self.player1,
+            "player2_id": self.player2,
+            "score": self.score,
+            "round": self.roundId,
+        }
 
 class Bracket:
     
