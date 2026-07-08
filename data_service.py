@@ -1,6 +1,14 @@
 from models import Player, Match
 from tennis_api import get_draws_cached, get_history_cached
  
+ROUND_NAMES = {
+    4: "Round of 128",
+    5: "Round of 64",
+    6: "Round of 32",
+    7: "Round of 16",
+    8: "Quarter-final",
+    9: "Semi-final",
+    10: "Final"}
  
 def load_draw(force_refresh=False):
     """Build players + matches from the (cached) Wimbledon draw."""
@@ -89,7 +97,7 @@ def bracket_by_round(matches, players_by_id):
             "winner_id": winner_id,
         })
     return [
-        {"round": rid, "matches": ms}
+        {"round": ROUND_NAMES.get(rid, f"Round {rid}"), "round_id": rid, "matches": ms}
         for rid, ms in sorted(rounds.items(), key=lambda kv: _round_sort_key(kv[0]))
     ]
  

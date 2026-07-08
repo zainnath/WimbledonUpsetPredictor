@@ -1,13 +1,18 @@
 
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, render_template, request
 from data_service import (load_draw, compute_sets, get_grass_record, determine_winner,
                           bracket_by_round, find_player, search_players)
 from predict import predict_matchup, get_historical
 from upset_predictor import h2h_total
  
 app = Flask(__name__)
- 
- 
+
+
+@app.route("/")
+def index():
+    return render_template("index.html")
+
+
 def get_state(force_refresh=False):
     """Load the draw and tally sets — shared setup for most endpoints."""
     players, matches, players_by_id = load_draw(force_refresh=force_refresh)
