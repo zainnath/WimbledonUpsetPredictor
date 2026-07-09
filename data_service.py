@@ -6,9 +6,9 @@ ROUND_NAMES = {
     5: "Round of 64",
     6: "Round of 32",
     7: "Round of 16",
-    8: "Quarter-final",
-    9: "Semi-final",
-    10: "Final"}
+    9: "Quarter-final",
+    10: "Semi-final",
+    11: "Final"}
  
 def load_draw(force_refresh=False):
     """Build players + matches from the (cached) Wimbledon draw."""
@@ -77,23 +77,23 @@ def _round_sort_key(round_id):
  
  
 def bracket_by_round(matches, players_by_id):
-    """Completed matches only, grouped by round, with names, score, and winner."""
+    """Grouped by round, with names, score, and winner. Matches whose pairing is
+    already known but haven't been played yet (e.g. an upcoming semi-final) are
+    included too, with score/winner left blank, so the bracket shows what's next."""
     rounds = {}
     for m in matches:
         winner_id = determine_winner(m)
-        if winner_id is None:
-            continue  # bracket page only shows played matches
         m.winner = winner_id
         p1 = players_by_id.get(m.player1)
         p2 = players_by_id.get(m.player2)
-        winner = players_by_id.get(winner_id)
+        winner = players_by_id.get(winner_id) if winner_id is not None else None
         rounds.setdefault(m.roundId, []).append({
             "player1": p1.name if p1 else str(m.player1),
             "player2": p2.name if p2 else str(m.player2),
             "player1_id": m.player1,
             "player2_id": m.player2,
             "score": m.score,
-            "winner": winner.name if winner else str(winner_id),
+            "winner": winner.name if winner else None,
             "winner_id": winner_id,
         })
     return [

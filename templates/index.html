@@ -3,10 +3,11 @@
 <head>
     <meta charset="utf-8">
     <title>Wimbledon — Live Draw</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <h1>Wimbledon — Live Draw</h1>
-    <div id="draws"></div>
+    <div id="bracket" class="bracket"></div>
 
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>

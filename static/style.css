@@ -1,0 +1,115 @@
+:root {
+    color-scheme: light dark;
+    --gap: 1rem;
+    --bg: #f5f6f8;
+    --text: #1f2328;
+    --text-muted: #6b7280;
+    --card-bg: #ffffff;
+    --card-border: #d8dee4;
+    --winner: #1a7f37;
+    --prediction: #b8590a;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg: #14171a;
+        --text: #e6edf3;
+        --text-muted: #8b949e;
+        --card-bg: #1c2128;
+        --card-border: #30363d;
+        --winner: #3fb950;
+        --prediction: #d29922;
+    }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+    margin: 0;
+    padding: 2rem;
+    background: var(--bg);
+    color: var(--text);
+}
+
+h1 {
+    margin: 0 0 1.5rem;
+    font-size: 1.5rem;
+}
+
+.bracket {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(220px, 1fr);
+    align-items: start;
+    gap: var(--gap);
+    overflow-x: auto;
+    padding-bottom: 1rem;
+}
+
+.round {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap);
+}
+
+.round h2 {
+    margin: 0 0 0.25rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+}
+
+.match {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: box-shadow 0.15s ease;
+}
+
+.match:hover {
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.12);
+}
+
+.player {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.15rem 0;
+}
+
+.player .seed {
+    min-width: 2em;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.player .name {
+    flex: 1;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.player.winner .name {
+    font-weight: 700;
+    color: var(--winner);
+}
+
+.score {
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+.prediction {
+    margin-top: 0.5rem;
+    min-height: 1.1em;
+    font-size: 0.8rem;
+    color: var(--prediction);
+}
