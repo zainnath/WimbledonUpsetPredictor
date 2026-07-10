@@ -9,12 +9,13 @@ venv/
 .ipynb_checkpoints/
 *.ipynb_checkpoints
 
-# Data / cache
-data/
+# Data / cache — keep the static reference datasets (data/*.csv, data/sample_draw.json)
+# tracked; only the transient RapidAPI response cache is ignored.
 data/cache/
 
-# VS Code
+# IDE
 .vscode/
+.idea/
 
 # Python
 __pycache__/

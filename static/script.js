@@ -6,6 +6,26 @@ async function fetchJSON(url) {
     return response.json();
 }
 
+function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+}
+
+// Toggles a chart between its loading/error status text and its canvas, so a
+// chart never shows a blank flash and a failed fetch never leaves it stuck
+// on "Loading…".
+function setChartStatus(canvasId, message) {
+    const canvas = document.getElementById(canvasId);
+    const status = canvas.parentElement.querySelector(".status-message");
+    if (message) {
+        status.textContent = message;
+        status.hidden = false;
+        canvas.hidden = true;
+    } else {
+        status.hidden = true;
+        canvas.hidden = false;
+    }
+}
+
 function seedLabel(seed) {
     return seed != null ? `#${seed}` : "—";
 }
@@ -109,6 +129,33 @@ async function handleMatchClick(event, playersById) {
     }
 }
 
+// Win rate isn't exposed by any endpoint, but /api/bracket already carries
+// player1_id/player2_id/winner_id for every match, so it's computed here from
+// data loadDraws() already fetched rather than adding a backend aggregation.
+function computeWinRates(rounds, playersById) {
+    const tally = new Map(); // player id -> {played, won}
+    for (const round of rounds) {
+        for (const match of round.matches) {
+            if (match.winner_id == null) continue; // unplayed or unparseable
+            for (const id of [match.player1_id, match.player2_id]) {
+                const t = tally.get(id) || { played: 0, won: 0 };
+                t.played += 1;
+                if (id === match.winner_id) t.won += 1;
+                tally.set(id, t);
+            }
+        }
+    }
+    return Array.from(tally.entries())
+        .map(([id, t]) => ({
+            name: playersById.get(id)?.name ?? String(id),
+            played: t.played,
+            winRate: t.won / t.played,
+        }))
+        .filter((p) => p.played >= 2) // a single-match record isn't a meaningful rate
+        .sort((a, b) => b.winRate - a.winRate || b.played - a.played)
+        .slice(0, 10);
+}
+
 async function loadDraws() {
     const container = document.getElementById("bracket");
     try {
@@ -120,10 +167,134 @@ async function loadDraws() {
         const playersById = new Map(playersData.players.map((p) => [p.id, p]));
         renderBracket(container, bracketData.rounds, playersById);
         container.addEventListener("click", (event) => handleMatchClick(event, playersById));
+
+        renderWinRate(bracketData.rounds, playersById);
     } catch (err) {
         console.error("Failed to load draws:", err);
-        container.textContent = "Failed to load the draw.";
+        container.innerHTML = '<p class="status-message">Couldn\'t load the draw — the tennis data source may be unavailable. Try refreshing.</p>';
+        setChartStatus("winRateChart", "Win rate unavailable — draw data didn't load.");
     }
 }
 
-loadDraws();
+let seedStatsChart = null;
+let acesDoubleFaultsChart = null;
+let winRateChart = null;
+
+function renderSeedStats(seeds) {
+    const labels = seeds.map((s) => `#${s.seed} ${s.name}`);
+    const data = seeds.map((s) => s.avg_aces);
+
+    if (seedStatsChart) seedStatsChart.destroy();
+    const ctx = document.getElementById("seedStatsChart");
+    seedStatsChart = new Chart(ctx, {
+        type: "bar",
+        data: { labels, datasets: [{ label: "Avg. aces per match", data, backgroundColor: cssVar("--accent-green") }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } },
+        },
+    });
+}
+
+function renderAcesDoubleFaults(seeds) {
+    const labels = seeds.map((s) => `#${s.seed} ${s.name}`);
+    const aces = seeds.map((s) => s.avg_aces);
+    const doubleFaults = seeds.map((s) => s.avg_double_faults);
+
+    if (acesDoubleFaultsChart) acesDoubleFaultsChart.destroy();
+    const ctx = document.getElementById("acesDoubleFaultsChart");
+    acesDoubleFaultsChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels,
+            datasets: [
+                { label: "Aces", data: aces, backgroundColor: cssVar("--accent-green") },
+                { label: "Double faults", data: doubleFaults, backgroundColor: cssVar("--accent-purple") },
+            ],
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true } },
+        },
+    });
+}
+
+async function loadServeStatsCharts() {
+    try {
+        const data = await fetchJSON("/api/seed-stats");
+        renderSeedStats(data.seeds);
+        renderAcesDoubleFaults(data.seeds);
+        setChartStatus("seedStatsChart", null);
+        setChartStatus("acesDoubleFaultsChart", null);
+    } catch (err) {
+        console.error("Failed to load seed stats:", err);
+        setChartStatus("seedStatsChart", "Serve stats unavailable right now.");
+        setChartStatus("acesDoubleFaultsChart", "Serve stats unavailable right now.");
+    }
+}
+
+function renderWinRate(rounds, playersById) {
+    const players = computeWinRates(rounds, playersById);
+    if (!players.length) {
+        setChartStatus("winRateChart", "Not enough completed matches yet.");
+        return;
+    }
+
+    const labels = players.map((p) => p.name);
+    const data = players.map((p) => Math.round(p.winRate * 1000) / 10);
+
+    if (winRateChart) winRateChart.destroy();
+    const ctx = document.getElementById("winRateChart");
+    winRateChart = new Chart(ctx, {
+        type: "bar",
+        data: { labels, datasets: [{ label: "Win rate (%)", data, backgroundColor: cssVar("--accent-green") }] },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: { y: { beginAtZero: true, max: 100 } },
+        },
+    });
+    setChartStatus("winRateChart", null);
+}
+
+function setupFilter() {
+    const input = document.getElementById("playerFilter");
+    if (!input) return;
+    input.addEventListener("input", () => {
+        const query = input.value.trim().toLowerCase();
+        document.querySelectorAll(".match").forEach((card) => {
+            const p1 = card.dataset.p1Name.toLowerCase();
+            const p2 = card.dataset.p2Name.toLowerCase();
+            const isMatch = !query || p1.includes(query) || p2.includes(query);
+            card.classList.toggle("filtered-out", !isMatch);
+        });
+    });
+}
+
+function updateLastUpdated() {
+    const el = document.getElementById("lastUpdated");
+    if (!el) return;
+    const time = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+    el.textContent = `Last updated ${time}`;
+}
+
+// Single entry point: the bracket and each chart fetch/render independently,
+// so one section failing (e.g. a chart endpoint erroring) never blocks the
+// rest of the page from rendering.
+async function initApp() {
+    updateLastUpdated();
+    setupFilter();
+    const sections = await Promise.allSettled([
+        loadDraws(),
+        loadServeStatsCharts(),
+    ]);
+    sections.forEach((result) => {
+        if (result.status === "rejected") {
+            console.error("A section failed to load:", result.reason);
+        }
+    });
+}
+
+initApp();

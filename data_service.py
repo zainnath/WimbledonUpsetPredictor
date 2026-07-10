@@ -134,3 +134,36 @@ def get_grass_record(player_id):
                 wins += surface["courtWins"]
                 losses += surface["courtLosses"]
     return wins, losses
+
+
+def seed_serve_stats(top_n=8):
+    """Average aces and double faults per completed match, for the top N seeded players.
+
+    Reads the raw cached draw JSON directly, since Player/Match only carry
+    id/name/seed/score — the per-match `stats` blocks aren't parsed anywhere else.
+    """
+    data = get_draws_cached("atp", "wimbledon", "2026")
+    totals = {}  # seed -> {"name": str, "aces": [int, ...], "double_faults": [int, ...]}
+    for match in data["singles"]:
+        for key in ("player1", "player2"):
+            p = match[key]
+            stats = p.get("stats")
+            if not stats or not stats.get("firstServeOf"):
+                continue
+            try:
+                seed = int(p.get("seed"))
+            except (TypeError, ValueError):
+                continue  # qualifiers/wildcards use 'q'/'WC' instead of a seed number
+            entry = totals.setdefault(seed, {"name": p["name"], "aces": [], "double_faults": []})
+            entry["aces"].append(stats["aces"])
+            entry["double_faults"].append(stats.get("doubleFaults", 0))
+    ranked = sorted(totals.items())[:top_n]
+    return [
+        {
+            "seed": seed,
+            "name": v["name"],
+            "avg_aces": round(sum(v["aces"]) / len(v["aces"]), 1),
+            "avg_double_faults": round(sum(v["double_faults"]) / len(v["double_faults"]), 1),
+        }
+        for seed, v in ranked
+    ]

@@ -1,11 +1,20 @@
 
+import requests
 from flask import Flask, jsonify, render_template, request
 from data_service import (load_draw, compute_sets, get_grass_record, determine_winner,
-                          bracket_by_round, find_player, search_players)
+                          bracket_by_round, find_player, search_players, seed_serve_stats)
 from predict import predict_matchup, get_historical
 from upset_predictor import h2h_total
- 
+
 app = Flask(__name__)
+
+
+# Every route eventually calls the RapidAPI tennis endpoint (directly or via a
+# cached read). If that API is down or rate-limited, `requests` raises here
+# instead of any individual route crashing with an unhandled 500.
+@app.errorhandler(requests.exceptions.RequestException)
+def handle_tennis_api_error(e):
+    return jsonify({"error": "Tennis data source is unavailable right now. Please try again shortly."}), 503
 
 
 @app.route("/")
@@ -120,5 +129,11 @@ def h2h():
     })
  
  
+# ---- Endpoint 7: serve stats for the top seeds (charts page) --------------
+@app.route("/api/seed-stats")
+def seed_stats():
+    return jsonify({"seeds": seed_serve_stats()})
+
+
 if __name__ == "__main__":
     app.run(debug=True)

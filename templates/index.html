@@ -7,8 +7,35 @@
 </head>
 <body>
     <h1>Wimbledon — Live Draw</h1>
-    <div id="bracket" class="bracket"></div>
+    <p id="lastUpdated" class="last-updated"></p>
 
+    <div class="charts">
+        <div class="chart-panel">
+            <h2>Top Seed Serve Stats</h2>
+            <p class="status-message"><span class="spinner"></span>Loading…</p>
+            <canvas id="seedStatsChart" hidden></canvas>
+        </div>
+        <div class="chart-panel">
+            <h2>Aces vs Double Faults</h2>
+            <p class="status-message"><span class="spinner"></span>Loading…</p>
+            <canvas id="acesDoubleFaultsChart" hidden></canvas>
+        </div>
+        <div class="chart-panel">
+            <h2>Win Rate by Player</h2>
+            <p class="status-message"><span class="spinner"></span>Loading…</p>
+            <canvas id="winRateChart" hidden></canvas>
+        </div>
+    </div>
+
+    <div class="filter-bar">
+        <input type="search" id="playerFilter" class="filter-input" placeholder="Find a player…" autocomplete="off">
+    </div>
+
+    <div id="bracket" class="bracket">
+        <p class="status-message"><span class="spinner"></span>Loading the draw…</p>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
